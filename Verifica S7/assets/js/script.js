@@ -1,7 +1,7 @@
 let apiKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTc4MTUxMWMwNTgzNTAwMTg1MjJjOGUiLCJpYXQiOjE3MDIzNzA0MzgsImV4cCI6MTcwMzU4MDAzOH0.EAlwblfOu3EJHmte69boiGQVh5QihCpdhi5yHemjp5c";
 let uri = "https://striveschool-api.herokuapp.com/api/product";
-let prodArr = [];
+let idArr = [];
 class product {
   constructor(_name, _description, _brand, _imageUrl, _price) {
     this.name = _name;
@@ -21,9 +21,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   let brandInput = document.querySelector("#brand");
   let imgInput = document.querySelector("#imgUrl");
   let priceInput = document.querySelector("#price");
-  get(uri);
+  let cardDiv = document.querySelector("div.container.row.d-flex");
+  console.log(cardDiv);
+  get(uri, cardDiv);
   postBtn.addEventListener("click", () => {
     console.log(nameInput.value);
+
     let newProd = new product(
       nameInput.value,
       descInput.value,
@@ -35,14 +38,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   delBtn.addEventListener("click", () => {
     del(uri);
-    console.log("sotcaz");
+    console.log("deleted last");
   });
 });
 
-function get(uri) {
+function get(uri, cardDiv) {
   fetch(uri, { method: "GET", headers: { Authorization: `bearer ${apiKey}` } })
     .then((response) => response.json())
-    .then((data) => console.log(data));
+    .then((json) => {
+      console.log(json);
+      json.forEach((element) => {
+        idArr.push(element._id);
+        addCard(element, cardDiv);
+      });
+    });
+  console.log(idArr);
 }
 
 function post(data, uri) {
@@ -53,10 +63,15 @@ function post(data, uri) {
       Authorization: `bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-  }).catch((error) => console.log(error));
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+    })
+    .catch((error) => console.log(error));
 }
 function del(uri) {
-  fetch(`${uri}`, {
+  fetch(`${uri}/${idArr.pop()}`, {
     method: "DELETE",
     headers: {
       Authorization: `bearer ${apiKey}`,
@@ -65,4 +80,36 @@ function del(uri) {
   })
     .then((response) => response.json)
     .catch((error) => console.log(error));
+}
+
+function addCard(json, cardDiv) {
+  console.log("card" + json.name);
+  let cutDesc = json.description;
+
+  if (json.description.length > 50) {
+    console.log(cutDesc);
+    cutDesc = cutDesc.slice(0, 80) + "...";
+    console.log(cutDesc);
+  }
+  console.log(cardDiv);
+  cardDiv.innerHTML += `
+          <div class="col align-self-center">
+            <div class="card my-1" style="width: 18rem; height: 516px">
+              <img src="${json.imageUrl}" class="card-img-top" alt="..." style="width: 286px; height: 286px">
+                <div class="card-body row">
+                  <div class="col">
+                    <h5 class="card-title">${json.name}</h5>
+            
+                  </div>
+                  <div class="col">
+                  <p class="card-title text-end">${json.brand}</p>
+            
+                </div>
+                  <p class="card-text">${cutDesc}</p>
+                  <p class="card-text">${json.price}€</p>
+                  <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+            </div>
+          </div>
+  `;
 }
