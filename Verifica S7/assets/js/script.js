@@ -1,3 +1,4 @@
+let i = 0;
 let apiKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTc4MTUxMWMwNTgzNTAwMTg1MjJjOGUiLCJpYXQiOjE3MDIzNzA0MzgsImV4cCI6MTcwMzU4MDAzOH0.EAlwblfOu3EJHmte69boiGQVh5QihCpdhi5yHemjp5c";
 let uri = "https://striveschool-api.herokuapp.com/api/product";
@@ -12,7 +13,7 @@ class product {
   }
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   let postBtn = document.querySelector("button.btn-primary");
   let delBtn = document.querySelector("button.btn-secondary");
 
@@ -22,11 +23,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let imgInput = document.querySelector("#imgUrl");
   let priceInput = document.querySelector("#price");
   let cardDiv = document.querySelector("div.container.row.d-flex");
+
   console.log(cardDiv);
   get(uri, cardDiv);
   postBtn.addEventListener("click", () => {
-    console.log(nameInput.value);
-
     let newProd = new product(
       nameInput.value,
       descInput.value,
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     post(newProd, uri);
   });
   delBtn.addEventListener("click", () => {
-    del(uri);
+    del(uri, idArr.pop());
     console.log("deleted last");
   });
 });
@@ -48,15 +48,15 @@ function get(uri, cardDiv) {
     .then((json) => {
       console.log(json);
       json.forEach((element) => {
-        idArr.push(element._id);
-        addCard(element, cardDiv);
+        idArr.push(element);
+        addCard(element, cardDiv, idArr);
       });
     });
   console.log(idArr);
 }
 
 function post(data, uri) {
-  fetch(uri, {
+  fetch(`${uri}`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
@@ -67,11 +67,12 @@ function post(data, uri) {
     .then((response) => response.json())
     .then((data) => {
       console.log(data);
+      console.log(data.description);
     })
     .catch((error) => console.log(error));
 }
-function del(uri) {
-  fetch(`${uri}/${idArr.pop()}`, {
+function del(uri, id) {
+  fetch(`${uri}/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `bearer ${apiKey}`,
@@ -82,34 +83,60 @@ function del(uri) {
     .catch((error) => console.log(error));
 }
 
-function addCard(json, cardDiv) {
+function addCard(json, cardDiv, idArr) {
   console.log("card" + json.name);
+  console.log(idArr);
   let cutDesc = json.description;
 
-  if (json.description.length > 50) {
+  if (json.description.length > 80) {
     console.log(cutDesc);
     cutDesc = cutDesc.slice(0, 80) + "...";
     console.log(cutDesc);
   }
   console.log(cardDiv);
   cardDiv.innerHTML += `
-          <div class="col align-self-center">
+          <div class="col align-self-center" id="${idArr[i]._id}" value="${i}">
+          <a href="#" class="btn btn-danger">Delete</a>
+          <a href="#" class="btn btn-success">modify</a>
             <div class="card my-1" style="width: 18rem; height: 516px">
-              <img src="${json.imageUrl}" class="card-img-top" alt="..." style="width: 286px; height: 286px">
+
+
+              <img src="${idArr[i].imageUrl}" class="card-img-top" alt="..." style="width: 286px; height: 286px">
                 <div class="card-body row">
                   <div class="col">
-                    <h5 class="card-title">${json.name}</h5>
+                    <h5 class="card-title">${idArr[i].name}</h5>
             
                   </div>
                   <div class="col">
-                  <p class="card-title text-end">${json.brand}</p>
+                  <p class="card-title text-end">${idArr[i].brand}</p>
             
                 </div>
-                  <p class="card-text">${cutDesc}</p>
-                  <p class="card-text">${json.price}€</p>
+                  <p class="card-text">${idArr[i].description}</p>
+                  <p class="card-text">${idArr[i].price}€</p>
                   <a href="#" class="btn btn-primary">Go somewhere</a>
                 </div>
             </div>
           </div>
   `;
+  let delCardBtn = document.querySelectorAll("a.btn.btn-danger");
+  let modCardBtn = document.querySelectorAll("a.btn.btn-success");
+
+  console.log(delCardBtn);
+  delCardBtn.forEach((element) => {
+    console.log(element);
+    element.addEventListener("click", (event) => {
+      let delCard = event.target.parentNode.id;
+      console.log(delCard);
+      del(uri, delCard);
+    });
+  });
+  modCardBtn.forEach((element) => {
+    element.addEventListener("click", (event) => {
+      console.log(event.target.parentNode.attributes.value.value);
+      let c = event.target.parentNode.attributes.value.value;
+      //TODO MODIFICA CARD
+    });
+  });
+  i++;
 }
+function modCard() {}
