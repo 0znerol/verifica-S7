@@ -1,4 +1,5 @@
 let i = 0;
+
 let apiKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTc4MTUxMWMwNTgzNTAwMTg1MjJjOGUiLCJpYXQiOjE3MDIzNzA0MzgsImV4cCI6MTcwMzU4MDAzOH0.EAlwblfOu3EJHmte69boiGQVh5QihCpdhi5yHemjp5c";
 let uri = "https://striveschool-api.herokuapp.com/api/product";
@@ -51,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // });
 
   delBtn.addEventListener("click", () => {
-    del(uri, idArr.pop());
     console.log("deleted last");
   });
 });
@@ -61,7 +61,7 @@ function get(uri, cardDiv) {
     .then((json) => {
       console.log(json);
       json.forEach((element) => {
-        addCard(element, cardDiv);
+        addCard(element, cardDiv, json);
       });
     });
 }
@@ -77,7 +77,8 @@ function post(data, uri) {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
+      console.log(data.description);
+
       location.reload();
     })
     .catch((error) => console.log(error));
@@ -97,8 +98,8 @@ function del(uri, id) {
     .catch((error) => console.log(error));
 }
 
-function addCard(json, cardDiv) {
-  console.log("card" + json.name);
+function addCard(json, cardDiv, jsonArr) {
+  console.log("card" + json.description);
   let cutDesc = json.description;
 
   if (json.description.length > 80) {
@@ -109,23 +110,19 @@ function addCard(json, cardDiv) {
   console.log(cardDiv);
   cardDiv.innerHTML += `
           <div class="col text-center" id="${json._id}" value="${i}">
-          <a href="#" class="btn btn-danger"><i class="bi bi-trash"></i></a>
-          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal">
-          <i class="bi bi-pencil"></i>
-          </button>
-            <div class="card my-1 m-auto text-start" style="width: 18rem; height: 516px">
-
-
-              <img src="${json.imageUrl}" class="card-img-top" alt="..." style="width: 286px; height: 286px">
+            <a href="#" class="btn btn-danger"><i class="bi bi-trash"></i></a>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <div class="card my-1 bg-dark-subtle shadow-lg m-auto text-start" style="width: 18rem; height: 516px">
+              <img src="${json.imageUrl}" class="card-img-top m-auto shadow my-2" alt="..." style="width: 17em; height: 17em">
                 <div class="card-body row">
                   <div class="col">
                     <h5 class="card-title">${json.name}</h5>
-            
                   </div>
                   <div class="col">
-                  <p class="card-title text-end">${json.brand}</p>
-            
-                </div>
+                  <p class="card-title text-end">${json.brand}</p>  
+                  </div>
                   <p class="card-text">${cutDesc}</p>
                   <p class="card-text">${json.price}€</p>
                   <a href="#" class="btn btn-primary">Read More</a>
@@ -133,6 +130,29 @@ function addCard(json, cardDiv) {
             </div>
           </div>
   `;
+  modCard(jsonArr);
+  i++;
+  console.log(i);
+}
+function updateCard(id, name, description, brand, imageUrl, price) {
+  let updatedProd = new product(name, description, brand, imageUrl, price);
+
+  fetch(`${uri}/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(updatedProd),
+    headers: {
+      Authorization: `bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+      location.reload();
+    })
+    .catch((error) => console.log(error));
+}
+function modCard(json) {
   let delCardBtn = document.querySelectorAll("a.btn.btn-danger");
   let modCardBtn = document.querySelectorAll("button.btn.btn-primary");
   let modalBtn = document.querySelectorAll("button.btn.btn-success");
@@ -158,25 +178,26 @@ function addCard(json, cardDiv) {
       let selectedCard = document.getElementById(id);
       let savedNameInput =
         selectedCard.childNodes[5].childNodes[3].childNodes[1].innerText;
-      console.dir(selectedCard.childNodes[5].childNodes[3]);
       let savedBrandInput =
         selectedCard.childNodes[5].childNodes[3].childNodes[3].innerText;
       let savedDescInput =
         selectedCard.childNodes[5].childNodes[3].childNodes[5].innerText;
-
       let savedImgInput = selectedCard.childNodes[5].childNodes[1].currentSrc;
-      console.log(savedImgInput);
-
-      console.dir(savedImgInput);
       let savedPriceInput =
         selectedCard.childNodes[5].childNodes[3].childNodes[7].innerText;
+      console.dir(event.target.parentNode);
+      console.dir(event.target.parentNode.attributes[2].value);
 
-      console.log(id);
+      let cc = event.target.parentNode.attributes[2].value;
+      console.log(json[cc]);
       modalNameInput.value = savedNameInput;
-      modalDescInput.value = savedDescInput;
+      modalDescInput.value = json[cc].description;
       modalBrandInput.value = savedBrandInput;
       modalImgInput.value = savedImgInput;
-      modalPriceInput.value = savedPriceInput;
+      modalPriceInput.value = savedPriceInput.slice(
+        0,
+        savedPriceInput.length - 1
+      );
       let saveChangesBtn = document.querySelector("#saveChangesBtn");
       saveChangesBtn.addEventListener("click", () => {
         updateCard(
@@ -197,24 +218,4 @@ function addCard(json, cardDiv) {
       del(uri, cardId);
     });
   });
-
-  i++;
-}
-function updateCard(id, name, description, brand, imageUrl, price) {
-  let updatedProd = new product(name, description, brand, imageUrl, price);
-
-  fetch(`${uri}/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(updatedProd),
-    headers: {
-      Authorization: `bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data);
-      location.reload();
-    })
-    .catch((error) => console.log(error));
 }

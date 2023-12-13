@@ -103,22 +103,18 @@ function addCard(json, cardDiv) {
 
   cardDiv.innerHTML += `
           <div class="col text-center" id="${json._id}" value="${i}">
-            <div class="card my-1 m-auto text-start" style="width: 18rem; height: 516px">
-
-
-              <img src="${json.imageUrl}" class="card-img-top" alt="..." style="width: 286px; height: 286px">
+            <div class="card my-1 bg-dark-subtle shadow-lg m-auto text-start" style="width: 18rem; height: 516px">
+              <img src="${json.imageUrl}" class="card-img-top my-2 shadow m-auto" alt="..." style="width: 17em; height: 17em">
                 <div class="card-body row">
                   <div class="col">
                     <h5 class="card-title">${json.name}</h5>
-            
                   </div>
                   <div class="col">
                   <p class="card-title text-end">${json.brand}</p>
-            
                 </div>
                   <p class="card-text">${cutDesc}</p>
                   <p class="card-text">${json.price}€</p>
-                  <a href="dettaglio.html" class="btn btn-primary dett">Read More</a>
+                  <a href="dettaglio.html" class="btn btn-primary dett shadow">Read More</a>
                 </div>
             </div>
           </div>
